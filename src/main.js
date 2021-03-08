@@ -45,10 +45,10 @@ const sort = async () => {
 
 const checkSort = async (elements) => {
   for (const element of elements) {
-    const currentElement = await getElement(element);
+    const currentElement = await highlightElement(element);
     if (!currentElement.nextSibling) return false;
 
-    const nextElement = await getElement(currentElement.nextSibling);
+    const nextElement = await highlightElement(currentElement.nextSibling);
 
     const currentValue = parseInt(currentElement.getAttribute('data-value'));
     const nextValue = parseInt(nextElement.getAttribute('data-value'));
@@ -60,20 +60,26 @@ const checkSort = async (elements) => {
 const quickSort = async (elements) => {
   if (elements.length < 2) return elements;
 
-  const pivot = await getElementByIndex(elements, Math.floor(elements.length / 2));
+  const pivot = elements[Math.floor(elements.length / 2)];
+  pivot.style.background = 'red';
   const pivotIndex = pivot.getAttribute('data-index');
 
   let less = [];
   let greater = [];
   for (const element of elements) {
-    const value = parseInt((await getElement(element)).getAttribute('data-value'));
-    const pivotValue = parseInt((await getElement(pivot)).getAttribute('data-value'));
+    const value = parseInt(element.getAttribute('data-value'));
+    const pivotValue = parseInt(pivot.getAttribute('data-value'));
 
     const elementIndex = element.getAttribute('data-index');
 
-    if (value <= pivotValue && elementIndex !== pivotIndex) less.push(element);
+    if (elementIndex === pivotIndex) continue;
+
+    await highlightElement(element);
+    if (value <= pivotValue) less.push(element);
     if (value > pivotValue) greater.unshift(element);
   }
+
+  pivot.style.background = 'black';
 
   less.map(el => {
     el.remove();
@@ -88,17 +94,7 @@ const quickSort = async (elements) => {
   return [...(await quickSort(less)), pivot, ...(await quickSort(greater))];
 }
 
-const getElementByIndex = async (array, index) => {
-  if (!array[index]) return null;
-
-  array[index].style.background = 'red';
-  await timeout(() => {
-    array[index].style.background = 'black';
-  }, MS);
-  return array[index];
-};
-
-const getElement = async (element) => {
+const highlightElement = async (element) => {
   element.style.background = 'red';
   await timeout(() => {
     element.style.background = 'black';
