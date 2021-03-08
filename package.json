@@ -1,0 +1,23 @@
+{
+  "name": "sort-visualization",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "parcel serve src/index.html",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hardcoreezz/sort-visualization.git"
+  },
+  "author": "I. Bukanov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Hardcoreezz/sort-visualization/issues"
+  },
+  "homepage": "https://github.com/Hardcoreezz/sort-visualization#readme",
+  "devDependencies": {
+    "parcel-bundler": "^1.12.4"
+  }
+}
