@@ -19,5 +19,8 @@
   "homepage": "https://github.com/Hardcoreezz/sort-visualization#readme",
   "devDependencies": {
     "parcel-bundler": "^1.12.4"
+  },
+  "dependencies": {
+    "src": "^1.1.2"
   }
 }

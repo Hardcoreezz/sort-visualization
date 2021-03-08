@@ -1,4 +1,5 @@
 import 'regenerator-runtime/runtime';
+import {highlightElement, swap} from './utils.js'
 
 const container = document.getElementById('container');
 const msSpeed = document.getElementById('msSpeed');
@@ -37,24 +38,110 @@ const setSpeed = (value) => {
   msSpeed.innerText = `${MS}`;
 }
 
+let timerId = null;
+const timerElement = document.getElementById('timer');
+const iterationElement = document.getElementById('iteration');
+
+const setTimer = () => {
+  let timer = 0;
+  timerId = setInterval(() => {
+    timerElement.innerText = `${++timer}`;
+  }, 1000);
+}
+const stopTimer = () => {
+  clearInterval(timerId);
+}
+const clearInfo = () => {
+  timerElement.innerText = `0`;
+  iterationElement.innerText = `0`;
+}
+const increaseIteration = () => {
+  iterationElement.innerText = String(parseInt(iterationElement.innerText) + 1);
+}
+
 const sort = async () => {
+  clearInfo();
+  setTimer();
+
+  const sortType = document.getElementById('sortType').value;
   const arrayElements = [...container.children];
   const isNeedSort = await checkSort(arrayElements);
-  isNeedSort && await quickSort(arrayElements);
+  switch (sortType) {
+    case 'quick': {
+      isNeedSort && await quickSort(arrayElements);
+      break;
+    }
+    case 'bubble': {
+      isNeedSort && await bubbleSort(arrayElements);
+      break;
+    }
+    case 'comb': {
+      isNeedSort && await combSort(arrayElements);
+      break;
+    }
+  }
+  stopTimer();
 }
 
 const checkSort = async (elements) => {
   for (const element of elements) {
-    const currentElement = await highlightElement(element);
+    const currentElement = await highlightElement(element, MS);
     if (!currentElement.nextSibling) return false;
 
-    const nextElement = await highlightElement(currentElement.nextSibling);
+    const nextElement = await highlightElement(currentElement.nextSibling, MS);
 
     const currentValue = parseInt(currentElement.getAttribute('data-value'));
     const nextValue = parseInt(nextElement.getAttribute('data-value'));
     if (currentValue > nextValue) return true;
   }
   return false;
+}
+
+const combSort = async (elements) => {
+  const factor = 1.3;
+  let gapFactor = elements.length / factor;
+
+  while (gapFactor > 1) {
+    const gap = Math.round(gapFactor);
+
+    for (let i = 0, j = gap; j < elements.length; i++, j++) {
+      increaseIteration();
+
+      highlightElement(elements[i], MS);
+      await highlightElement(elements[j], MS);
+
+      if (parseInt(elements[i].getAttribute('data-value')) > parseInt(elements[j].getAttribute('data-value'))) {
+        const small = elements[j];
+
+        swap(elements[i], elements[j]);
+        elements[j] = elements[i];
+
+        elements[i] = small;
+      }
+    }
+    gapFactor = gapFactor / factor;
+  }
+}
+
+const bubbleSort = async (elements) => {
+  let buffer;
+
+  for (let j = 0; j < elements.length - 1; j++) {
+    for (let i = 0; i < (elements.length - j) - 1; i++) {
+      increaseIteration();
+
+      await highlightElement(elements[i], MS);
+
+      if (parseInt(elements[i].getAttribute('data-value')) > parseInt(elements[i + 1].getAttribute('data-value'))) {
+        buffer = elements[i];
+
+        swap(elements[i], elements[i + 1]);
+
+        elements[i] = elements[i + 1];
+        elements[i + 1] = buffer;
+      }
+    }
+  }
 }
 
 const quickSort = async (elements) => {
@@ -67,6 +154,7 @@ const quickSort = async (elements) => {
   let less = [];
   let greater = [];
   for (const element of elements) {
+    increaseIteration();
     const value = parseInt(element.getAttribute('data-value'));
     const pivotValue = parseInt(pivot.getAttribute('data-value'));
 
@@ -74,7 +162,7 @@ const quickSort = async (elements) => {
 
     if (elementIndex === pivotIndex) continue;
 
-    await highlightElement(element);
+    await highlightElement(element, MS);
     if (value <= pivotValue) less.push(element);
     if (value > pivotValue) greater.unshift(element);
   }
@@ -92,21 +180,6 @@ const quickSort = async (elements) => {
   });
 
   return [...(await quickSort(less)), pivot, ...(await quickSort(greater))];
-}
-
-const highlightElement = async (element) => {
-  element.style.background = 'red';
-  await timeout(() => {
-    element.style.background = 'black';
-  }, MS);
-  return element;
-};
-
-function timeout(fn, ms) {
-  return new Promise(resolve => setTimeout(() => {
-    fn();
-    resolve();
-  }, ms));
 }
 
 const generateButton = document.getElementById('generate');

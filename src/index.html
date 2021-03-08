@@ -6,7 +6,7 @@
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="./style.css">
-  <title>Sorting Visualization (quicksort)</title>
+  <title>Sorting Visualization</title>
 </head>
 <body>
   <section>
@@ -17,12 +17,34 @@
       </label>
 
       <button id="generate">Generate</button>
+
+      <label for="sortType">Choose type of sort</label>
+      <select name="sortType" id="sortType">
+        <option value="quick">Quicksort</option>
+        <option value="bubble">Bubble</option>
+        <option value="comb">Comb sort</option>
+      </select>
+
       <button id="sort">Sort</button>
       <label for="speed">
         Speed
         <input type="range" id="speed" max="99" min="0" value="50">
         <span id="msSpeed"></span>ms per operation
       </label>
+      <div>
+        <p>
+          Iterations:
+        <span id="iteration">
+          0
+        </span>
+        </p>
+        <p>
+          Timer:
+        <span id="timer">
+          0
+        </span>
+        </p>
+      </div>
     </div>
     <div class="container" id="container">
     </div>
