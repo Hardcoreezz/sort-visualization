@@ -6,18 +6,23 @@
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="./style.css">
-  <title>Sorting Visualization</title>
+  <title>Sorting Visualization (quicksort)</title>
 </head>
 <body>
   <section>
     <div class="section-header">
       <label for="countElements">
-        Введите количество элементов для сортировки
+        Enter the number of items to sort
         <input type="number" id="countElements">
       </label>
 
-      <button id="generate">Сгенерировать</button>
-      <button id="sort">Сортировать</button>
+      <button id="generate">Generate</button>
+      <button id="sort">Sort</button>
+      <label for="speed">
+        Speed
+        <input type="range" id="speed" max="99" min="0" value="50">
+        <span id="msSpeed"></span>ms per operation
+      </label>
     </div>
     <div class="container" id="container">
     </div>

@@ -1,16 +1,25 @@
-import 'regenerator-runtime/runtime'
+import 'regenerator-runtime/runtime';
 
 const container = document.getElementById('container');
+const msSpeed = document.getElementById('msSpeed');
+
+let MS = 5;
 
 const generate = () => {
-  const countElements = document.getElementById('countElements').value;
+  const countElement = document.getElementById('countElements');
+  const count = countElement.value;
 
-  if (!countElements || countElements > 1000) return;
+  countElement.classList.remove('error');
 
-  const widthElement = container.getBoundingClientRect().width / countElements;
+  if (!count || count > 1000) {
+    countElement.classList.add('error');
+    return;
+  }
+
+  const widthElement = container.getBoundingClientRect().width / count;
 
   container.innerHTML = '';
-  for (let i = 0; i < countElements; i++) {
+  for (let i = 0; i < count; i++) {
     const element = document.createElement('span');
     const randomValue = Math.floor(Math.random() * 100);
     element.style.width = widthElement + 'px';
@@ -22,60 +31,95 @@ const generate = () => {
     container.append(element);
   }
 }
-const sort = async () => {
-  const arrayElements = [...container.children]
-  quickSort(arrayElements);
+
+const setSpeed = (value) => {
+  MS = 100 - value;
+  msSpeed.innerText = `${MS}`;
 }
 
-const quickSort = async (array) => {
-  if (array.length < 2) return array;
+const sort = async () => {
+  const arrayElements = [...container.children];
+  const isNeedSort = await checkSort(arrayElements);
+  isNeedSort && await quickSort(arrayElements);
+}
 
-  const pivot = await getElementByIndex(array, Math.floor(Math.random() * array.length));
+const checkSort = async (elements) => {
+  for (const element of elements) {
+    const currentElement = await getElement(element);
+    if (!currentElement.nextSibling) return false;
 
-  const less = array.filter(async (el, index) => {
-    return array[await getElementByIndex(array, index)].getAttribute('data-value') < await getElement(pivot).getAttribute('data-value')
-  });
+    const nextElement = await getElement(currentElement.nextSibling);
 
-  const greater = array.filter(async (el, index) => {
-    return array[await getElementByIndex(array, index)].getAttribute('data-value') > await getElement(pivot).getAttribute('data-value')
-  });
+    const currentValue = parseInt(currentElement.getAttribute('data-value'));
+    const nextValue = parseInt(nextElement.getAttribute('data-value'));
+    if (currentValue > nextValue) return true;
+  }
+  return false;
+}
+
+const quickSort = async (elements) => {
+  if (elements.length < 2) return elements;
+
+  const pivot = await getElementByIndex(elements, Math.floor(elements.length / 2));
+  const pivotIndex = pivot.getAttribute('data-index');
+
+  let less = [];
+  let greater = [];
+  for (const element of elements) {
+    const value = parseInt((await getElement(element)).getAttribute('data-value'));
+    const pivotValue = parseInt((await getElement(pivot)).getAttribute('data-value'));
+
+    const elementIndex = element.getAttribute('data-index');
+
+    if (value <= pivotValue && elementIndex !== pivotIndex) less.push(element);
+    if (value > pivotValue) greater.unshift(element);
+  }
 
   less.map(el => {
-    container.removeChild(el);
-    pivot.insertAdjacentHTML('beforebegin', el.outerHTML)
-  })
-  greater.map(el => {
-    container.removeChild(el);
-    pivot.insertAdjacentHTML('afterend', el.outerHTML)
-  })
+    el.remove();
+    container.insertBefore(el, pivot);
+  });
 
-  return [await quickSort(less), array[pivot], await quickSort(greater)];
+  greater.map(el => {
+    el.remove();
+    pivot.after(el);
+  });
+
+  return [...(await quickSort(less)), pivot, ...(await quickSort(greater))];
 }
 
 const getElementByIndex = async (array, index) => {
+  if (!array[index]) return null;
+
   array[index].style.background = 'red';
   await timeout(() => {
     array[index].style.background = 'black';
-  }, 0);
+  }, MS);
   return array[index];
-}
+};
+
 const getElement = async (element) => {
   element.style.background = 'red';
   await timeout(() => {
     element.style.background = 'black';
-  }, 0);
+  }, MS);
   return element;
-}
+};
 
 function timeout(fn, ms) {
   return new Promise(resolve => setTimeout(() => {
-    fn()
-    resolve()
+    fn();
+    resolve();
   }, ms));
 }
 
 const generateButton = document.getElementById('generate');
 const sortButton = document.getElementById('sort');
+
+const speedInput = document.getElementById('speed');
+setSpeed(speedInput.value);
+
+speedInput.addEventListener('input', (e) => setSpeed(e.target.value));
 
 generateButton.onclick = generate;
 sortButton.onclick = sort;
