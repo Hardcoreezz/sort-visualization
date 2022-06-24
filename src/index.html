@@ -13,13 +13,13 @@
     <div class="section-header">
       <label for="countElements">
         Enter the number of items to sort(1-1000)
-        <input type="number" id="countElements">
+        <input type="number" max="1000" min="0" id="countElements">
       </label>
 
       <button id="generate">Generate</button>
 
-      <label for="sortType">Choose type of sort</label>
-      <select name="sortType" id="sortType">
+      <label for="sortMethod">Choose type of sort</label>
+      <select name="sortMethod" id="sortMethod">
         <option value="quick">Quicksort</option>
         <option value="bubble">Bubble</option>
         <option value="comb">Comb sort</option>
@@ -50,5 +50,5 @@
     </div>
   </section>
 </body>
-<script src="./main.js"></script>
+<script type="module" src="./main.ts"></script>
 </html>
