@@ -5,6 +5,8 @@ import CombSort from './SortMethods/CombSort';
 import BubbleSort from './SortMethods/BubbleSort';
 import { SortProps } from './types';
 
+const MAX_ELEMENTS_COUNT = 1000;
+
 class Main {
   private ms = 5;
   private readonly msSpeed: HTMLElement;
@@ -17,14 +19,23 @@ class Main {
   private readonly iterationElement: HTMLElement;
   private readonly countElement: HTMLInputElement;
 
+  private readonly generateButton: HTMLButtonElement;
+  private readonly sortButton: HTMLButtonElement;
+  private readonly stopButton: HTMLButtonElement;
+
   private readonly sortMethodElement: HTMLInputElement;
 
-  private audioContext: AudioContext;
-  private oscillator: OscillatorNode;
+  private isOscillatorStart = false;
+
+  private stopSortToken = {
+    value: false
+  };
 
   private audio: {
+    gainNode: GainNode;
+    audioContext: AudioContext;
     oscillator: OscillatorNode;
-    start: () => void;
+    play: (value: number) => void;
     stop: () => void;
   }
 
@@ -35,30 +46,22 @@ class Main {
     this.iterationElement = document.getElementById('iteration');
     this.countElement = document.getElementById('countElements') as HTMLInputElement;
     this.sortMethodElement = document.getElementById('sortMethod') as HTMLInputElement;
+    this.generateButton = document.getElementById('generate') as HTMLButtonElement;
+    this.sortButton = document.getElementById('sort') as HTMLButtonElement;
+    this.stopButton = document.getElementById('stop') as HTMLButtonElement;
 
     this.init();
   }
 
   init() {
-    this.audioContext = new window.AudioContext();
-    this.oscillator = this.audioContext.createOscillator();
-
-    this.audio = {
-      oscillator: this.oscillator,
-      start: () => this.oscillator.connect(this.audioContext.destination),
-      stop: () => this.oscillator.disconnect(this.audioContext.destination)
-    };
-
-    const generateButton = document.getElementById('generate');
-    const sortButton = document.getElementById('sort');
-
     const speedInput = document.getElementById('speed') as HTMLInputElement;
     this.setSpeed(+speedInput.value);
 
     speedInput.addEventListener('input', (e) => this.setSpeed(+(e.target as HTMLInputElement).value));
 
-    generateButton.onclick = this.generate.bind(this);
-    sortButton.onclick = this.sort.bind(this);
+    this.generateButton.onclick = this.generate.bind(this);
+    this.sortButton.onclick = this.sort.bind(this);
+    this.stopButton.onclick = () => this.stopSortToken.value = true;
   }
 
   generate() {
@@ -69,7 +72,7 @@ class Main {
 
     this.countElement.classList.remove('error');
 
-    if (!count || count > 1000) {
+    if (!count || count > MAX_ELEMENTS_COUNT) {
       this.countElement.classList.add('error');
       return;
     }
@@ -100,10 +103,12 @@ class Main {
   stopTimer() {
     clearInterval(this.timerId);
   }
+
   clearInfo() {
     this.timerElement.innerText = `0`;
     this.iterationElement.innerText = `0`;
   }
+
   increaseIteration() {
     this.iterationElement.innerText = `${parseInt(this.iterationElement.innerText) + 1}`;
   }
@@ -114,54 +119,95 @@ class Main {
   }
 
   async sort() {
+    this.setDisableControlButtons(true);
+    this.stopSortToken.value = false;
+
     this.clearInfo();
     this.stopTimer();
 
+    if (!this.isOscillatorStart) {
+      const audioContext = new window.AudioContext();
+      const oscillator = audioContext.createOscillator();
+
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = 0.02;
+      gainNode.connect(audioContext.destination);
+
+      this.audio = {
+        audioContext,
+        oscillator,
+        gainNode,
+        play: (value: number) => oscillator.frequency.setValueAtTime(value, audioContext.currentTime),
+        stop: () => oscillator.disconnect(gainNode)
+      };
+
+      this.isOscillatorStart = true;
+      oscillator.start();
+    }
+
     const sortMethod = this.sortMethodElement.value;
     const arrayElements = [...(this.container.children as unknown as HTMLElement[])];
-    this.oscillator.start();
+
+    this.audio.oscillator.connect(this.audio.gainNode);
+
     const isNeedSort = await this.checkSort(arrayElements);
     if (isNeedSort) {
       this.setTimer();
 
       const sortProps: SortProps = {
+        stopSort: this.stopSortToken,
         elements: arrayElements,
-        onHighlight: (element) => highlightElement(element, this.ms, this.audio),
+        onHighlight: (element) => highlightElement(element, this.ms, this.audio.play),
         onIncreaseIteration: this.increaseIteration.bind(this),
         container: this.container,
       }
 
-      switch (sortMethod) {
-        case 'quick': {
-          await QuickSort(sortProps);
-          break;
+      let sortedElements: HTMLElement[];
+
+      try {
+        switch (sortMethod) {
+          case 'quick': {
+            sortedElements = await QuickSort(sortProps);
+            break;
+          }
+          case 'bubble': {
+            sortedElements = await BubbleSort(sortProps);
+            break;
+          }
+          case 'comb': {
+            sortedElements = await CombSort(sortProps);
+            break;
+          }
         }
-        case 'bubble': {
-          await BubbleSort(sortProps);
-          break;
-        }
-        case 'comb': {
-          await CombSort(sortProps);
-          break;
-        }
+        await this.checkSort(sortedElements);
+      } catch (e) {
+        this.stopSortToken.value = false;
       }
+
     }
-    await this.checkSort(arrayElements);
-    this.oscillator.stop();
+    this.audio.stop();
+
     this.stopTimer();
+    this.setDisableControlButtons(false);
   }
+
   async checkSort(elements: HTMLElement[]) {
     for (const element of elements) {
-      const currentElement = await highlightElement(element, this.ms, this.audio);
+      const currentElement = await highlightElement(element, this.ms, this.audio.play);
       if (!currentElement.nextSibling) return false;
 
-      const nextElement = await highlightElement(currentElement.nextSibling as HTMLElement, this.ms, this.audio);
+      const nextElement = await highlightElement(currentElement.nextSibling as HTMLElement, this.ms, this.audio.play);
 
       const currentValue = parseInt(currentElement.getAttribute('data-value'));
       const nextValue = parseInt(nextElement.getAttribute('data-value'));
       if (currentValue > nextValue) return true;
     }
     return false;
+  }
+
+  setDisableControlButtons(disable: boolean) {
+    this.generateButton.disabled = disable;
+    this.sortButton.disabled = disable;
   }
 }
 

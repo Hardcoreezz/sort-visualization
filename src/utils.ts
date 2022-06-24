@@ -5,18 +5,14 @@ export const swap = (node1: HTMLElement, node2: HTMLElement) => {
   parent.insertBefore(node1, afterNode2);
 };
 
-export const highlightElement = async (element: HTMLElement, ms: number, audio: {
-  oscillator: OscillatorNode;
-  start: () => void;
-  stop: () => void;
-}) => {
-  audio.oscillator.frequency.value = 100 + (+element.getAttribute('data-value') * 10);
-  audio.start();
+export const highlightElement = async (element: HTMLElement, ms: number, playAudio?: (value: number) => void) => {
   element.style.background = 'red';
+  playAudio?.(300 + (+element.getAttribute('data-value') * 5));
+
   await timeout(() => {
     element.style.background = 'black';
-    audio.stop();
   }, ms);
+
   return element;
 };
 

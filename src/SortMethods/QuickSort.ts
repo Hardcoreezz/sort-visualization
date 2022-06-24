@@ -1,7 +1,7 @@
 import { SortProps } from '../types';
 
 const QuickSort = async (props: SortProps) => {
-  const { elements, onIncreaseIteration, onHighlight, container } = props;
+  const { elements, onIncreaseIteration, onHighlight, container, stopSort } = props;
 
   if (elements.length < 2) return elements;
 
@@ -12,6 +12,11 @@ const QuickSort = async (props: SortProps) => {
   const less = [];
   const greater = [];
   for (const element of elements) {
+    if (stopSort.value) {
+      pivot.style.background = 'black';
+      throw false;
+    }
+
     onIncreaseIteration();
     const value = parseInt(element.getAttribute('data-value'));
     const pivotValue = parseInt(pivot.getAttribute('data-value'));
