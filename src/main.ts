@@ -160,7 +160,7 @@ class Main {
         onHighlight: (element) => highlightElement(element, this.ms, this.audio.play),
         onIncreaseIteration: this.increaseIteration.bind(this),
         container: this.container,
-      }
+      };
 
       let sortedElements: HTMLElement[];
 
@@ -183,7 +183,6 @@ class Main {
       } catch (e) {
         this.stopSortToken.value = false;
       }
-
     }
     this.audio.stop();
 
@@ -192,15 +191,29 @@ class Main {
   }
 
   async checkSort(elements: HTMLElement[]) {
+    const setBlackElements = () => {
+      for (const element of elements) {
+        element.style.background = 'black';
+      }
+    }
     for (const element of elements) {
       const currentElement = await highlightElement(element, this.ms, this.audio.play);
-      if (!currentElement.nextSibling) return false;
+      if (!currentElement.nextSibling) {
+        currentElement.style.background = 'forestgreen';
+        return false;
+      }
 
       const nextElement = await highlightElement(currentElement.nextSibling as HTMLElement, this.ms, this.audio.play);
 
       const currentValue = parseInt(currentElement.getAttribute('data-value'));
       const nextValue = parseInt(nextElement.getAttribute('data-value'));
-      if (currentValue > nextValue) return true;
+      if (currentValue > nextValue) {
+        setBlackElements();
+        return true;
+      } else {
+        currentElement.style.background = 'forestgreen';
+        nextElement.style.background = 'forestgreen';
+      }
     }
     return false;
   }
