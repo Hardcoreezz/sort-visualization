@@ -1,19 +1,20 @@
 import { SortProps } from '../types';
+import { ACTIVE_COLOR, INACTIVE_COLOR } from '../constants';
 
-const QuickSort = async (props: SortProps) => {
+export const QuickSort = async (props: SortProps) => {
   const { elements, onIncreaseIteration, onHighlight, container, stopSort } = props;
 
   if (elements.length < 2) return elements;
 
   const pivot = elements[Math.floor(elements.length / 2)];
-  pivot.style.background = 'red';
+  pivot.style.background = ACTIVE_COLOR;
   const pivotIndex = pivot.getAttribute('data-index');
 
   const less = [];
   const greater = [];
   for (const element of elements) {
     if (stopSort.value) {
-      pivot.style.background = 'black';
+      pivot.style.background = INACTIVE_COLOR;
       throw false;
     }
 
@@ -30,7 +31,7 @@ const QuickSort = async (props: SortProps) => {
     if (value > pivotValue) greater.unshift(element);
   }
 
-  pivot.style.background = 'black';
+  pivot.style.background = INACTIVE_COLOR;
 
   less.map(el => {
     el.remove();
@@ -48,5 +49,3 @@ const QuickSort = async (props: SortProps) => {
     ...(await QuickSort({...props, elements: greater}))
   ];
 }
-
-export default QuickSort;

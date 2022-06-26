@@ -1,11 +1,8 @@
 import 'regenerator-runtime/runtime';
 import { highlightElement } from './utils'
-import QuickSort from './SortMethods/QuickSort';
-import CombSort from './SortMethods/CombSort';
-import BubbleSort from './SortMethods/BubbleSort';
 import { SortProps } from './types';
-
-const MAX_ELEMENTS_COUNT = 1000;
+import sortMap from './sortMap';
+import { INACTIVE_COLOR, MAX_ELEMENTS_COUNT, SUCCESS_COLOR } from './constants';
 
 class Main {
   private ms = 5;
@@ -62,6 +59,14 @@ class Main {
     this.generateButton.onclick = this.generate.bind(this);
     this.sortButton.onclick = this.sort.bind(this);
     this.stopButton.onclick = () => this.stopSortToken.value = true;
+
+    Object.entries(sortMap).map(([key, value]) => {
+      const option = document.createElement('option');
+      option.value = key;
+      option.innerText = value.name;
+
+      this.sortMethodElement.append(option);
+    });
   }
 
   generate() {
@@ -162,23 +167,8 @@ class Main {
         container: this.container,
       };
 
-      let sortedElements: HTMLElement[];
-
       try {
-        switch (sortMethod) {
-          case 'quick': {
-            sortedElements = await QuickSort(sortProps);
-            break;
-          }
-          case 'bubble': {
-            sortedElements = await BubbleSort(sortProps);
-            break;
-          }
-          case 'comb': {
-            sortedElements = await CombSort(sortProps);
-            break;
-          }
-        }
+        const sortedElements = await sortMap[sortMethod].cb(sortProps);
         await this.checkSort(sortedElements);
       } catch (e) {
         this.stopSortToken.value = false;
@@ -193,13 +183,13 @@ class Main {
   async checkSort(elements: HTMLElement[]) {
     const setBlackElements = () => {
       for (const element of elements) {
-        element.style.background = 'black';
+        element.style.background = INACTIVE_COLOR;
       }
     }
     for (const element of elements) {
       const currentElement = await highlightElement(element, this.ms, this.audio.play);
       if (!currentElement.nextSibling) {
-        currentElement.style.background = 'forestgreen';
+        currentElement.style.background = SUCCESS_COLOR;
         return false;
       }
 
@@ -211,8 +201,8 @@ class Main {
         setBlackElements();
         return true;
       } else {
-        currentElement.style.background = 'forestgreen';
-        nextElement.style.background = 'forestgreen';
+        currentElement.style.background = SUCCESS_COLOR;
+        nextElement.style.background = SUCCESS_COLOR;
       }
     }
     return false;

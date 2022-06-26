@@ -1,7 +1,7 @@
 import { SortProps } from '../types';
 import { swap } from '../utils';
 
-const BubbleSort = async ({ elements, onIncreaseIteration, onHighlight, stopSort }: SortProps) => {
+export const BubbleSort = async ({ elements, onIncreaseIteration, onHighlight, stopSort }: SortProps) => {
   let buffer: HTMLElement;
 
   for (let j = 0; j < elements.length - 1; j++) {
@@ -28,5 +28,3 @@ const BubbleSort = async ({ elements, onIncreaseIteration, onHighlight, stopSort
 
   return elements;
 }
-
-export default BubbleSort;

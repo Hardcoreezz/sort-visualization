@@ -1,3 +1,5 @@
+import { ACTIVE_COLOR } from './constants';
+
 export const swap = (node1: HTMLElement, node2: HTMLElement) => {
   const afterNode2 = node2.nextElementSibling;
   const parent = node2.parentNode;
@@ -6,11 +8,13 @@ export const swap = (node1: HTMLElement, node2: HTMLElement) => {
 };
 
 export const highlightElement = async (element: HTMLElement, ms: number, playAudio?: (value: number) => void) => {
-  element.style.background = 'red';
+  const prevColor = element.style.background;
+
+  element.style.background = ACTIVE_COLOR;
   playAudio?.(300 + (+element.getAttribute('data-value') * 5));
 
   await timeout(() => {
-    element.style.background = 'black';
+    element.style.background = prevColor;
   }, ms);
 
   return element;
